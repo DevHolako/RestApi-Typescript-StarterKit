@@ -2,15 +2,20 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { connect } from "@/modles/db";
+import AuthRoutes from "@/routes/authroute";
 
 //* app & middlewares */
 const app = express();
+dotenv.config();
 app.use(cors());
 app.use(express.json());
 
 //* starting the app & the db connenction */
-app.listen(3000, () => {
-  console.log("app is runing ~ 🚀");
+app.listen(process.env.PORT, () => {
+  console.log(`app is runing ~ 🚀 on PORT : ${process.env.PORT}`);
+  connect();
 });
 
 //* routes */
+app.use("/api", AuthRoutes);
