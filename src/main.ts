@@ -1,8 +1,9 @@
 //* imports  */
 import express from "express";
+import "module-alias/register";
 import cors from "cors";
 import dotenv from "dotenv";
-import { connect } from "@/modles/db";
+import { connect } from "@/models/db";
 import AuthRoutes from "@/routes/authroute";
 
 //* app & middlewares */
