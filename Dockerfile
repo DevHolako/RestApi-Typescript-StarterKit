@@ -1,17 +1,19 @@
 FROM node:14-alpine
 
-ADD package.json /tmp/package.json
+WORKDIR ./app
 
-RUN rm -rf dist
+COPY package.json ./
 
-RUN cd /tmp && yarn install
+RUN yarn install
 
-ADD ./ /src
-
-RUN rm -rf src/node_modules && cp -a /tmp/node_modules /src/
-
-WORKDIR /src
+COPY . .
 
 RUN yarn build
 
-CMD ["node","build/src/main.js"]
+RUN rm -rf src
+
+EXPOSE 3000
+
+CMD ["node", "dist/main.js"]
+
+
