@@ -1,10 +1,10 @@
 //* imports  */
 import express from "express";
-import "module-alias/register";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connect } from "@/models/db";
-import AuthRoutes from "@/routes/authroute";
+import { AuthRoutes } from "@/routes/authroute";
+import { healthCheckRoutes } from "@/routes/apicheck";
 
 //* app & middlewares */
 const app = express();
@@ -19,4 +19,5 @@ app.listen(process.env.PORT, () => {
 });
 
 //* routes */
+app.use(healthCheckRoutes);
 app.use("/api", AuthRoutes);
