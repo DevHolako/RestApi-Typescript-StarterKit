@@ -2,22 +2,58 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { connect } from "@/models/db";
 import { AuthRoutes } from "@/routes/authroute";
-import { healthCheckRoutes } from "@/routes/apicheck";
-
-//* app & middlewares */
-const app = express();
+import { ping } from "@/routes/ping";
+import mongoose from "mongoose";
+import lg from "./utils/log";
 dotenv.config();
-app.use(cors());
-app.use(express.json());
+const app = express();
+//** connect to db *//
+mongoose
+  .connect(process.env.MONGO_URI as string)
+  .then(() => {
+    lg.info("🚀✅ - database connected");
+    StartServer();
+  })
+  .catch((e) => lg.error(e));
 
-//* starting the app & the db connenction */
-app.listen(process.env.PORT, () => {
-  console.log(`app is runing ~ 🚀 on PORT : ${process.env.PORT}`);
-  connect();
-});
+/** Start Server  */
+const StartServer = () => {
+  //*  middlewares *//
+  /** Log the request */
+  app.use((req, res, next) => {
+    /** Log the req */
+    lg.info(
+      `Incomming - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${req.socket.remoteAddress}]`
+    );
 
-//* routes */
-app.use(healthCheckRoutes);
-app.use("/api", AuthRoutes);
+    res.on("finish", () => {
+      /** Log the res */
+      lg.info(
+        `Result - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${req.socket.remoteAddress}] - STATUS: [${res.statusCode}]`
+      );
+    });
+
+    next();
+  });
+
+  app.use(cors());
+  app.use(express.json());
+  //* middlewares *//
+
+  //* routes */
+  app.use(ping);
+  app.use("/api", AuthRoutes);
+  /** Error handling */
+  app.use((req, res, next) => {
+    const error = new Error("Not found");
+    lg.error(error);
+    res.status(404).json({
+      message: error.message,
+    });
+  });
+  //* starting the app  */
+  app.listen(process.env.PORT, () => {
+    lg.info(`app is runing ~ 🚀 on PORT : ${process.env.PORT}`);
+  });
+};
