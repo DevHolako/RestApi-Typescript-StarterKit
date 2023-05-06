@@ -1,5 +1,5 @@
 import { CreateUserInput } from "@/intrefaces/User";
-import { createUser, validatePassword } from "@/utils/UserUtils";
+import { createUser, findUser, validatePassword } from "@/utils/UserUtils";
 import { Request, Response } from "express";
 
 export async function RegisterHandler(
@@ -7,6 +7,11 @@ export async function RegisterHandler(
   res: Response
 ) {
   try {
+    const isExisted = await findUser(req.body.username);
+    if (isExisted)
+      return res.status(490).json({
+        message: "username already exists",
+      });
     const user = await createUser(req.body);
     return res.send(user);
   } catch (e: any) {
