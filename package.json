@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/main.ts",
     "checks": "tsc --noEmit",
-    "build": "tsc && tsc-alias "
+    "build": "tsc && tsc-alias ",
+    "start": "node dist/main.js"
   },
   "keywords": [],
   "author": "",
