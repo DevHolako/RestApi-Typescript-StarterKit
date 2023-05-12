@@ -28,6 +28,11 @@ mongoose
 
 /** Start Server  */
 const StartServer = () => {
+  //* starting the app  */
+  app.listen(process.env.PORT, () => {
+    lg.info(`app is runing ~ 🚀 on PORT : ${process.env.PORT}`);
+  });
+
   //*  middlewares *//
   // app.use(deserializeUser);
   app.use(cookieParser());
@@ -60,9 +65,4 @@ const StartServer = () => {
   /** Error  handling */
   app.use(notfound);
   app.use(errorHandler);
-
-  //* starting the app  */
-  app.listen(process.env.PORT, () => {
-    lg.info(`app is runing ~ 🚀 on PORT : ${process.env.PORT}`);
-  });
 };
