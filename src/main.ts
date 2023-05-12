@@ -1,16 +1,22 @@
 //* imports  */
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { AuthRoutes } from "@/routes/authroute";
 import { ping } from "@/routes/ping";
 import mongoose from "mongoose";
-/** utils */
-import lg from "./utils/log";
-import req_ip from "request-ip";
-
+import lg from "@/utils/log";
+import { prelog } from "@/middlewares/prelog";
+import helmet from "helmet";
+import { errorHandler } from "@/middlewares/errors";
+import { authenticateToken } from "@/middlewares/authenticateToken";
+import { notfound } from "@/middlewares/notefound";
+import cookieParser from "cookie-parser";
+import { deserializeUser } from "@/middlewares/deserializeUser";
+import { requestLimter } from "./middlewares/requestLimiter";
 dotenv.config();
 const app = express();
+
 //** connect to db *//
 mongoose
   .connect(process.env.MONGO_URI as string)
@@ -23,43 +29,38 @@ mongoose
 /** Start Server  */
 const StartServer = () => {
   //*  middlewares *//
-  /** Log the request */
-  app.use((req: Request, res: Response, next) => {
-    /** Log the req */
+  // app.use(deserializeUser);
+  app.use(cookieParser());
+  app.use(prelog);
+  app.use(helmet());
+  app.use(
+    cors({
+      credentials: true,
+      origin: process.env.FRONTEND_URL,
+    })
+  );
 
-    const ip = req_ip.getClientIp(req);
-    lg.info(
-      `Incomming - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${ip}]`
-    );
-
-    res.on("finish", () => {
-      /** Log the res */
-      lg.info(
-        `Result - METHOD: [${req.method}] - URL: [${req.url}] - IP: [${ip}] - STATUS: [${res.statusCode}]`
-      );
-    });
-
-    next();
-  });
-
-  app.use(cors());
   app.use(express.json());
+  app.use(requestLimter);
   //* middlewares *//
 
-  //* routes */
-  app.get("/", (req: Request, res: Response) =>
-    res.json({ message: "use /api to access this" })
-  );
-  app.use(ping);
-  app.use("/api", AuthRoutes);
-  /** Error handling */
-  app.use((req: Request, res: Response, next) => {
-    const error = new Error("Not found");
-    lg.error(error);
-    res.status(404).json({
-      message: error.message,
-    });
+  //*  routes *//
+  app.get("/", (_req: Request, res: Response) => {
+    res.json({ message: "use /api to access this" });
   });
+
+  app.use(ping);
+  app.get("/protected", authenticateToken, (_req: Request, res: Response) => {
+    const userInfo = res.locals.user;
+    res.json(userInfo);
+  });
+  app.use("/api", AuthRoutes);
+  //*  routes *//
+
+  /** Error  handling */
+  app.use(notfound);
+  app.use(errorHandler);
+
   //* starting the app  */
   app.listen(process.env.PORT, () => {
     lg.info(`app is runing ~ 🚀 on PORT : ${process.env.PORT}`);
