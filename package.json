@@ -2,7 +2,6 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
-  "main": "main.ts",
   "scripts": {
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/main.ts",
     "checks": "tsc --noEmit",
