@@ -54,15 +54,17 @@ const StartServer = () => {
     res.json({ message: "use /api to access this" });
   });
 
-  app.use(ping);
   app.get("/protected", authenticateToken, (_req: Request, res: Response) => {
     const userInfo = res.locals.user;
     res.json(userInfo);
   });
+  app.use(ping);
   app.use("/api", AuthRoutes);
   //*  routes *//
 
   /** Error  handling */
   app.use(notfound);
   app.use(errorHandler);
+
+  lg.warning(process.env.FRONTEND_URL);
 };
