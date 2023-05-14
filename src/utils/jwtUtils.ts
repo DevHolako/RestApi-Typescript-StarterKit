@@ -1,7 +1,17 @@
 import { I_User, UserModel } from "@/models/User";
 import jwt from "jsonwebtoken";
 import { get, omit } from "lodash";
-import lg from "./log";
+
+interface TokenPayload {
+  id: string;
+  username: string;
+}
+export enum TokenExpiration {
+  Access = 5 * 60,
+  Refresh = 7 * 24 * 60 * 60,
+  RefreshIfLessThan = 4 * 24 * 60 * 60,
+}
+
 export function verifyJwt(token: string) {
   try {
     const decoded = jwt.verify(token, process.env.TOKEN_SECRET as string);
@@ -25,8 +35,17 @@ export async function verifyRefreshToken(token: string) {
 
   const user = await UserModel.findOne({ username: get(decoded, "username") });
   if (!user) return false;
+  return user;
+}
 
-  const sanitizedUser = omit(user.toObject(), "password");
-  console.log(sanitizedUser);
-  return sanitizedUser;
+export function singAccessToken(paylod: TokenPayload) {
+  return jwt.sign(paylod, process.env.TOKEN_SECRET as string, {
+    expiresIn: TokenExpiration.Access,
+  });
+}
+
+export function singRefreshToken(paylod: TokenPayload) {
+  return jwt.sign(paylod, process.env.TOKEN_SECRET as string, {
+    expiresIn: TokenExpiration.Refresh,
+  });
 }

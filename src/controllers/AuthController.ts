@@ -1,18 +1,18 @@
-import { CreateUserInput } from "@/intrefaces/User";
 import { I_User } from "@/models/User";
 import { createUser, findUser, validatePassword } from "@/utils/UserUtils";
 // import { verifyJwt } from "@/utils/jwtUtils";
 // import lg from "@/utils/log";
 import { Request, Response } from "express";
 import JWT from "jsonwebtoken";
-import asyncHandler from "express-async-handler";
-import { verifyRefreshToken } from "@/utils/jwtUtils";
-import { omit } from "lodash";
+import {
+  TokenExpiration,
+  singAccessToken,
+  singRefreshToken,
+  verifyRefreshToken,
+} from "@/utils/jwtUtils";
+import lg from "@/utils/log";
 
-const RegisterHandler = async (
-  req: Request<{}, {}, CreateUserInput["body"]>,
-  res: Response
-) => {
+const RegisterHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
   try {
     const isExisted = await findUser(req.body.username);
     if (isExisted)
@@ -22,7 +22,7 @@ const RegisterHandler = async (
     const user = await createUser(req.body);
     return res.send(user);
   } catch (e: any) {
-    console.log(e);
+    lg.error(e.message);
     return res.status(409).send(e.message);
   }
 };
@@ -33,22 +33,16 @@ const LoginHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
   if (!user) {
     return res.status(401).send("Invalid email or password");
   }
-  const accessToken = JWT.sign(
-    { ...user },
-    process.env.TOKEN_SECRET as string,
-    {
-      expiresIn: "10m",
-    }
-  );
+  const paylod = {
+    id: user._id as string,
+    username: user.username,
+  };
 
-  const refreshToken = JWT.sign(
-    { ...user },
-    process.env.TOKEN_SECRET as string,
-    { expiresIn: "15d" }
-  );
+  const accessToken = singAccessToken(paylod);
+  const refreshToken = singRefreshToken(paylod);
 
-  res.cookie("jwt", refreshToken, {
-    maxAge: 15 * 24 * 60 * 60 * 1000,
+  res.cookie("refreshToken", refreshToken, {
+    maxAge: TokenExpiration.Refresh,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false,
   });
@@ -56,26 +50,23 @@ const LoginHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
 };
 
 const RefreshToken = async (req: Request, res: Response) => {
-  const { jwt } = req.cookies;
-  if (!jwt) return res.status(401).json({ message: "Unauthorized" });
-  const user = await verifyRefreshToken(jwt);
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
+  const user = await verifyRefreshToken(refreshToken);
   if (!user) return res.status(401).json({ message: "Unauthorized" });
-  const accessToken = JWT.sign(
-    { ...user },
-    process.env.TOKEN_SECRET as string,
-    { expiresIn: "10m" }
-  );
+  const payload = { id: user._id as string, username: user.username as string };
+  const accessToken = singAccessToken(payload);
   return res.json({ accessToken });
 };
 
 const LogoutHandler = async (req: Request, res: Response) => {
-  const { jwt } = req.cookies;
-  if (!jwt) return res.status(401).json({ message: "Unauthorized" });
-  res.clearCookie("jwt", {
+  const { refreshToken } = req.cookies;
+  if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
+  res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false,
   });
-  res.json({ message: "logut sucessfly" });
+  res.json({ message: "logout sucessfly" });
 };
 
 export { LoginHandler, RegisterHandler, RefreshToken, LogoutHandler };
