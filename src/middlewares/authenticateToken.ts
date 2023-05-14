@@ -1,6 +1,5 @@
 import { verifyJwt } from "@/utils/jwtUtils";
 import { NextFunction, Request, Response } from "express";
-import { get } from "lodash";
 const authenticateToken = async (
   req: Request,
   res: Response,

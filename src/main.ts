@@ -1,19 +1,21 @@
 //* imports  */
-import express, { NextFunction, Request, Response } from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+import express, { Request, Response } from "express";
+import lg from "@/utils/log";
+//** routes imposrts */
+import mongoose from "mongoose";
 import { AuthRoutes } from "@/routes/authroute";
 import { ping } from "@/routes/ping";
-import mongoose from "mongoose";
-import lg from "@/utils/log";
-import { prelog } from "@/middlewares/prelog";
+//* middlewats imports */
 import helmet from "helmet";
+import cors from "cors";
+import dotenv from "dotenv";
+import { prelog } from "@/middlewares/prelog";
 import { errorHandler } from "@/middlewares/errors";
 import { authenticateToken } from "@/middlewares/authenticateToken";
 import { notfound } from "@/middlewares/notefound";
 import cookieParser from "cookie-parser";
-import { deserializeUser } from "@/middlewares/deserializeUser";
-import { requestLimter } from "./middlewares/requestLimiter";
+import { requestLimter } from "@/middlewares/requestLimiter";
+
 dotenv.config();
 const app = express();
 
