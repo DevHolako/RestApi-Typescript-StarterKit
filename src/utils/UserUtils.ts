@@ -12,7 +12,10 @@ export async function createUser(input: I_User) {
 }
 
 export async function findUser(username: string) {
-  const user = UserModel.findOne({ username });
+  const user = await UserModel.findOne({ username })
+    .select("-password")
+    .lean()
+    .exec();
   return user;
 }
 

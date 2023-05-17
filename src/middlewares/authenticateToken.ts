@@ -6,11 +6,15 @@ const authenticateToken = async (
   next: NextFunction
 ) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) return res.sendStatus(401);
+
+  if (!authHeader?.startsWith("Bearer ")) return res.sendStatus(403);
   const token = authHeader.split(" ")[1];
-  if (!token) return res.sendStatus(401);
+
+  if (!token) return res.sendStatus(403);
   const { decoded } = verifyJwt(token);
-  if (!decoded) return res.sendStatus(401);
+
+  if (!decoded) return res.sendStatus(403);
+
   res.locals.user = decoded;
   next();
 };

@@ -42,18 +42,20 @@ const LoginHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
   const refreshToken = singRefreshToken(paylod);
 
   res.cookie("refreshToken", refreshToken, {
-    maxAge: TokenExpiration.Refresh,
     httpOnly: true,
+    maxAge: TokenExpiration.Refresh * 1000,
     secure: process.env.NODE_ENV === "production" ? true : false,
   });
-  res.json({ accessToken }).status(200);
+  res.json({ accessToken, user: paylod }).status(200);
 };
 
 const RefreshToken = async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
-  if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
+  if (!refreshToken) return res.status(401);
   const user = await verifyRefreshToken(refreshToken);
-  if (!user) return res.status(401).json({ message: "Unauthorized" });
+  if (!user) return res.status(401);
+  if (user === "token expired") return res.send(401);
+  if (user === "server error") return res.send(500);
   const payload = { id: user._id as string, username: user.username as string };
   const accessToken = singAccessToken(payload);
   return res.json({ accessToken });
@@ -61,7 +63,7 @@ const RefreshToken = async (req: Request, res: Response) => {
 
 const LogoutHandler = async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
-  if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
+  if (!refreshToken) return res.status(401);
   res.clearCookie("refreshToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production" ? true : false,

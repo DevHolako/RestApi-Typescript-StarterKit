@@ -1,14 +1,15 @@
 import { I_User, UserModel } from "@/models/User";
-import jwt from "jsonwebtoken";
+import jwt, { TokenExpiredError } from "jsonwebtoken";
 import { get, omit } from "lodash";
+import lg from "./log";
 
 interface TokenPayload {
   id: string;
   username: string;
 }
 export enum TokenExpiration {
-  Access = 5 * 60,
-  Refresh = 7 * 24 * 60 * 60,
+  Access = 600,
+  Refresh = 864000,
   RefreshIfLessThan = 4 * 24 * 60 * 60,
 }
 
@@ -30,12 +31,23 @@ export function verifyJwt(token: string) {
 }
 
 export async function verifyRefreshToken(token: string) {
-  const decoded = jwt.verify(token, process.env.TOKEN_SECRET as string);
-  if (!decoded) return false;
-
-  const user = await UserModel.findOne({ username: get(decoded, "username") });
-  if (!user) return false;
-  return user;
+  try {
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET as string);
+    if (!decoded) return false;
+    const user = await UserModel.findOne({
+      username: get(decoded, "username"),
+    });
+    if (!user) return false;
+    return user;
+  } catch (error) {
+    if (error instanceof TokenExpiredError) {
+      lg.warning("token expired");
+      return "token expired";
+    } else {
+      lg.error("Token verification failed");
+      return "server error";
+    }
+  }
 }
 
 export function singAccessToken(paylod: TokenPayload) {

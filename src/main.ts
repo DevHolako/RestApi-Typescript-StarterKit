@@ -18,7 +18,6 @@ import { requestLimter } from "@/middlewares/requestLimiter";
 
 dotenv.config();
 const app = express();
-
 //** connect to db *//
 mongoose
   .connect(process.env.MONGO_URI as string)
@@ -40,13 +39,27 @@ const StartServer = () => {
   app.use(cookieParser());
   app.use(prelog);
   app.use(helmet());
-  app.use(
-    cors({
-      credentials: true,
-      origin: process.env.FRONTEND_URL,
-    })
-  );
-
+  lg.info(`env => ${process.env.NODE_ENV}`);
+  if (process.env.NODE_ENV === "development") {
+    app.use(
+      cors({
+        origin: process.env.FRONTEND_URL as string,
+        credentials: true,
+      })
+    );
+  } else {
+    app.use(
+      cors({
+        origin: (origin, callback) => {
+          if (origin === (process.env.FRONTEND_URL as string)) {
+            callback(null, true);
+          }
+          callback(new Error("Not Allowed By cores"));
+        },
+        credentials: true,
+      })
+    );
+  }
   app.use(express.json());
   app.use(requestLimter);
   //* middlewares *//
@@ -67,6 +80,4 @@ const StartServer = () => {
   /** Error  handling */
   app.use(notfound);
   app.use(errorHandler);
-
-  lg.warning(process.env.FRONTEND_URL);
 };
