@@ -11,11 +11,9 @@ export async function createUser(input: I_User) {
   }
 }
 
-export async function findUser(username: string) {
-  const user = await UserModel.findOne({ username })
-    .select("-password")
-    .lean()
-    .exec();
+export async function findUser(id: string) {
+  console.log(id);
+  const user = await UserModel.findById(id).select("-password").lean().exec();
   return user;
 }
 

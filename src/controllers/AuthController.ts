@@ -1,15 +1,7 @@
 import { I_User } from "@/models/User";
 import { createUser, findUser, validatePassword } from "@/utils/UserUtils";
-// import { verifyJwt } from "@/utils/jwtUtils";
-// import lg from "@/utils/log";
 import { Request, Response } from "express";
-import JWT from "jsonwebtoken";
-import {
-  TokenExpiration,
-  singAccessToken,
-  singRefreshToken,
-  verifyRefreshToken,
-} from "@/utils/jwtUtils";
+import { TokenExpiration, singToken } from "@/utils/jwtUtils";
 import lg from "@/utils/log";
 
 const RegisterHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
@@ -37,38 +29,24 @@ const LoginHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
     id: user._id as string,
     username: user.username,
   };
+  const jwt = singToken(paylod);
 
-  const accessToken = singAccessToken(paylod);
-  const refreshToken = singRefreshToken(paylod);
-
-  res.cookie("refreshToken", refreshToken, {
+  res.cookie("jwt", jwt, {
     httpOnly: true,
     maxAge: TokenExpiration.Refresh * 1000,
-    secure: process.env.NODE_ENV === "production" ? true : false,
+    secure: process.env.NODE_ENV === "production",
   });
-  res.json({ accessToken, user: paylod }).status(200);
-};
-
-const RefreshToken = async (req: Request, res: Response) => {
-  const { refreshToken } = req.cookies;
-  if (!refreshToken) return res.status(401);
-  const user = await verifyRefreshToken(refreshToken);
-  if (!user) return res.status(401);
-  if (user === "token expired") return res.send(401);
-  if (user === "server error") return res.send(500);
-  const payload = { id: user._id as string, username: user.username as string };
-  const accessToken = singAccessToken(payload);
-  return res.json({ accessToken });
+  res.json({ user: paylod }).status(200);
 };
 
 const LogoutHandler = async (req: Request, res: Response) => {
-  const { refreshToken } = req.cookies;
-  if (!refreshToken) return res.status(401);
-  res.clearCookie("refreshToken", {
+  const { jwt } = req.cookies;
+  if (!jwt) return res.status(401);
+  res.clearCookie("jwt", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" ? true : false,
+    secure: process.env.NODE_ENV === "production",
   });
   res.json({ message: "logout sucessfly" });
 };
 
-export { LoginHandler, RegisterHandler, RefreshToken, LogoutHandler };
+export { LoginHandler, RegisterHandler, LogoutHandler };

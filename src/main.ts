@@ -35,7 +35,6 @@ const StartServer = () => {
   });
 
   //*  middlewares *//
-  // app.use(deserializeUser);
   app.use(cookieParser());
   app.use(prelog);
   app.use(helmet());
