@@ -39,26 +39,12 @@ const StartServer = () => {
   app.use(prelog);
   app.use(helmet());
   lg.info(`env => ${process.env.NODE_ENV}`);
-  if (process.env.NODE_ENV === "development") {
-    app.use(
-      cors({
-        origin: process.env.FRONTEND_URL as string,
-        credentials: true,
-      })
-    );
-  } else {
-    app.use(
-      cors({
-        origin: (origin, callback) => {
-          if (origin === (process.env.FRONTEND_URL as string)) {
-            callback(null, true);
-          }
-          callback(new Error("Not Allowed By cores"));
-        },
-        credentials: true,
-      })
-    );
-  }
+  app.use(
+    cors({
+      origin: process.env.FRONTEND_URL as string,
+      credentials: true,
+    })
+  );
   app.use(express.json());
   app.use(requestLimter);
   //* middlewares *//
