@@ -16,6 +16,13 @@ export async function findUser(id: string) {
   const user = await UserModel.findById(id).select("-password").lean().exec();
   return user;
 }
+export async function findUserByUsername(username: string) {
+  const user = await UserModel.findOne({ username })
+    .select("-password")
+    .lean()
+    .exec();
+  return user;
+}
 
 export async function validatePassword({
   username,

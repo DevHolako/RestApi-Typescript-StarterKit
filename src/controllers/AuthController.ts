@@ -1,12 +1,16 @@
 import { I_User } from "@/models/User";
-import { createUser, findUser, validatePassword } from "@/utils/UserUtils";
+import {
+  createUser,
+  findUserByUsername,
+  validatePassword,
+} from "@/utils/UserUtils";
 import { Request, Response } from "express";
 import { TokenExpiration, singToken } from "@/utils/jwtUtils";
 import lg from "@/utils/log";
 
 const RegisterHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
   try {
-    const isExisted = await findUser(req.body.username);
+    const isExisted = await findUserByUsername(req.body.username);
     if (isExisted)
       return res.status(490).json({
         message: "user already exists try login ?!",
