@@ -21,7 +21,9 @@ const createClient = async (req: Request<{}, {}, I_Client>, res: Response) => {
     }
     const client = new ClientModel(req.body);
     const savedClient = await client.save();
-    res.status(201).json(savedClient);
+    res
+      .status(201)
+      .json({ client: savedClient, message: "Client created successfully" });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
@@ -34,11 +36,11 @@ const updateClient = async (req: Request, res: Response): Promise<void> => {
     const updatedClient = await ClientModel.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    if (updatedClient) {
-      res.json(updatedClient);
-    } else {
-      res.status(404).json({ error: "Client not found" });
-    }
+    if (!updatedClient) res.status(404).json({ error: "Client not found" });
+    res.status(201).json({
+      client: updatedClient,
+      message: "Client updated successfully",
+    });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
@@ -49,11 +51,8 @@ const deleteClient = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const deletedClient = await ClientModel.findByIdAndDelete(id);
-    if (deletedClient) {
-      res.json({ message: "Client deleted successfully" });
-    } else {
-      res.status(404).json({ error: "Client not found" });
-    }
+    if (!deletedClient) res.status(404).json({ message: "Client not found" });
+    res.json({ message: "Client deleted successfully" });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
