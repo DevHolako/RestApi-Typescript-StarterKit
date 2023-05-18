@@ -15,6 +15,7 @@ import { authenticateToken } from "@/middlewares/authenticateToken";
 import { notfound } from "@/middlewares/notefound";
 import cookieParser from "cookie-parser";
 import { requestLimter } from "@/middlewares/requestLimiter";
+import { ClientRoutes } from "./routes/clientroutes";
 
 dotenv.config();
 const app = express();
@@ -60,6 +61,7 @@ const StartServer = () => {
   });
   app.use(ping);
   app.use("/api", AuthRoutes);
+  app.use("/api", authenticateToken, ClientRoutes);
   //*  routes *//
 
   /** Error  handling */

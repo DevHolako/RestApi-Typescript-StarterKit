@@ -37,6 +37,6 @@ const ClientSchema = new Schema(
   }
 );
 
-const ClientModel = model<I_ClientDocument>("User", ClientSchema);
+const ClientModel = model<I_ClientDocument>("Client", ClientSchema);
 
 export { ClientModel };
