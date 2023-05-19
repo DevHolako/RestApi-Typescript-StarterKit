@@ -39,6 +39,7 @@ const LoginHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
     httpOnly: true,
     maxAge: TokenExpiration.Refresh * 1000,
     secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
   });
   res.json({ user: paylod }).status(200);
 };
