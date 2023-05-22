@@ -1,4 +1,5 @@
 import { verifyToken } from "@/utils/jwtUtils";
+import lg from "@/utils/log";
 import { NextFunction, Request, Response } from "express";
 const authenticateToken = async (
   req: Request,
@@ -6,12 +7,12 @@ const authenticateToken = async (
   next: NextFunction
 ) => {
   const { jwt } = req.cookies;
+  lg.warning(jwt);
   if (!jwt) return res.sendStatus(403);
   const user = await verifyToken(jwt);
-  console.log(user);
   if (!user) return res.sendStatus(403);
   res.locals.user = user;
-  console.log(user);
+  res.locals.jwt = jwt;
   next();
 };
 

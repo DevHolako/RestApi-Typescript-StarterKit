@@ -39,19 +39,17 @@ const LoginHandler = async (req: Request<{}, {}, I_User>, res: Response) => {
     httpOnly: true,
     maxAge: TokenExpiration.Refresh * 1000,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : true,
   });
   res.json({ user: paylod }).status(200);
 };
 
-const LogoutHandler = async (req: Request, res: Response) => {
-  const { jwt } = req.cookies;
-  if (!jwt) return res.status(401);
+const LogoutHandler = async (_req: Request, res: Response) => {
   res.clearCookie("jwt", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
   });
-  res.json({ message: "logout sucessfly" });
+  return res.json({ message: "logout sucessfly" });
 };
 
 export { LoginHandler, RegisterHandler, LogoutHandler };

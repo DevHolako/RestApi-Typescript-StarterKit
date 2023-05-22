@@ -1,6 +1,7 @@
 import { Document, Schema, model } from "mongoose";
 
 export interface I_Client {
+  ice: number;
   nom: string;
   prenom: string;
   email: string;
@@ -12,8 +13,13 @@ export interface I_ClientDocument extends I_Client, Document {
   updatedAt: Date;
 }
 
-const ClientSchema = new Schema(
+const ClientSchema = new Schema<I_Client>(
   {
+    ice: {
+      type: Number,
+      unique: true,
+      required: true,
+    },
     nom: {
       type: String,
       required: true,
@@ -24,7 +30,6 @@ const ClientSchema = new Schema(
     },
     email: {
       type: String,
-      required: true,
       unique: true,
     },
     address: {
